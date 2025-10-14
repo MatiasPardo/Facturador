@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+                  xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+                  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                  xmlns:tns="http://ar.gov.afip.dif.FEV1/"
+                  targetNamespace="http://ar.gov.afip.dif.FEV1/"
+                  name="Service">
+
+  <wsdl:types>
+    <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                targetNamespace="http://ar.gov.afip.dif.FEV1/"
+                elementFormDefault="qualified">
+
+      <!-- FEAuthRequest -->
+      <xsd:complexType name="FEAuthRequest">
+        <xsd:sequence>
+          <xsd:element name="Token" type="xsd:string"/>
+          <xsd:element name="Sign" type="xsd:string"/>
+          <xsd:element name="Cuit" type="xsd:long"/>
+        </xsd:sequence>
+      </xsd:complexType>
+
+      <!-- FECAERequest -->
+      <xsd:complexType name="FECAERequest">
+        <xsd:sequence>
+          <xsd:element name="FeCabReq" type="xsd:string"/>
+          <xsd:element name="FeDetReq" type="xsd:string"/>
+        </xsd:sequence>
+      </xsd:complexType>
+
+      <!-- FECAEResponse -->
+      <xsd:complexType name="FECAEResponse">
+        <xsd:sequence>
+          <xsd:element name="FeCabResp" type="xsd:string"/>
+          <xsd:element name="FeDetResp" type="xsd:string"/>
+        </xsd:sequence>
+      </xsd:complexType>
+
+      <!-- FECAESolicitar -->
+      <xsd:element name="FECAESolicitar">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="Auth" type="tns:FEAuthRequest"/>
+            <xsd:element name="FeCAEReq" type="tns:FECAERequest"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+
+      <!-- FECAESolicitarResponse -->
+      <xsd:element name="FECAESolicitarResponse">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="FECAESolicitarResult" type="tns:FECAEResponse"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+
+    </xsd:schema>
+  </wsdl:types>
+
+  <!-- Messages -->
+  <wsdl:message name="FECAESolicitarRequest">
+    <wsdl:part name="parameters" element="tns:FECAESolicitar"/>
+  </wsdl:message>
+
+  <wsdl:message name="FECAESolicitarResponse">
+    <wsdl:part name="parameters" element="tns:FECAESolicitarResponse"/>
+  </wsdl:message>
+
+  <!-- PortType -->
+  <wsdl:portType name="ServiceSoap">
+    <wsdl:operation name="FECAESolicitar">
+      <wsdl:input message="tns:FECAESolicitarRequest"/>
+      <wsdl:output message="tns:FECAESolicitarResponse"/>
+    </wsdl:operation>
+  </wsdl:portType>
+
+  <!-- Binding -->
+  <wsdl:binding name="ServiceSoapBinding" type="tns:ServiceSoap">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="FECAESolicitar">
+      <soap:operation soapAction="http://ar.gov.afip.dif.FEV1/FECAESolicitar" style="document"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+
+  <!-- Service -->
+  <wsdl:service name="Service">
+    <wsdl:port name="ServiceSoap" binding="tns:ServiceSoapBinding">
+      <soap:address location="https://servicios1.afip.gov.ar/wsfev1/service.asmx"/>
+    </wsdl:port>
+  </wsdl:service>
+
+</wsdl:definitions>
