@@ -21,23 +21,33 @@ public class FacturacionController {
         this.autenticacionRepository = autenticacionRepository;
     }
     
-    @PostMapping("/facturar")
-    public CAEResponse facturar(@RequestBody FacturaRequest request) {
-        // Verificar autenticación automáticamente
-        if (!autenticacionRepository.tieneCredencialesValidas("wsfe")) {
-            autenticacionRepository.autenticar("wsfe");
-        }
+    @PostMapping("/generar")
+    public CAEResponse generar(@RequestBody FacturaRequest request) {
+
         
-        TipoComprobante tipo = convertirTipo(request.getTipoComprobante());
+        TipoComprobante tipo = convertirTipoNumerico(request.getTipoComprobante());
+        
+        // Determinar servicio basado en tipo de comprobante
+        String servicio = determinarServicio(request.getTipoComprobante());
+        
+        // Verificar autenticación para el servicio correcto
+        if (!autenticacionRepository.tieneCredencialesValidas(servicio)) {
+            autenticacionRepository.autenticar(servicio);
+        }
         
         CAE cae;
         if (request.getCuitCliente() == null || request.getCuitCliente() == 0) {
-            cae = generarFactura.ejecutarConsumidorFinal(tipo, request.getPuntoVenta(), request.getImporte());
+            cae = generarFactura.ejecutarConsumidorFinal(servicio, tipo, request.getPuntoVenta(), request.getImporteTotal());
         } else {
-            cae = generarFactura.ejecutarCliente(tipo, request.getPuntoVenta(), request.getImporte(), request.getCuitCliente());
+            cae = generarFactura.ejecutarCliente(servicio, tipo, request.getPuntoVenta(), request.getImporteTotal(), request.getCuitCliente());
         }
         
         return convertirCAE(cae);
+    }
+    
+    @PostMapping("/facturar")
+    public CAEResponse facturar(@RequestBody FacturaRequest request) {
+        return generar(request);
     }
     
     @PostMapping("/consumidor-final")
@@ -50,9 +60,18 @@ public class FacturacionController {
         }
         
         TipoComprobante tipoComprobante = convertirTipo(tipo);
-        CAE cae = generarFactura.ejecutarConsumidorFinal(tipoComprobante, puntoVenta, new java.math.BigDecimal(importe));
+        CAE cae = generarFactura.ejecutarConsumidorFinal("wsfe", tipoComprobante, puntoVenta, new java.math.BigDecimal(importe));
         
         return convertirCAE(cae);
+    }
+    
+    private TipoComprobante convertirTipoNumerico(int codigo) {
+        switch (codigo) {
+            case 1: return TipoComprobante.FACTURA_A;
+            case 6: return TipoComprobante.FACTURA_B;
+            case 11: return TipoComprobante.FACTURA_C;
+            default: throw new IllegalArgumentException("Código de tipo no válido: " + codigo);
+        }
     }
     
     private TipoComprobante convertirTipo(String tipo) {
@@ -65,10 +84,39 @@ public class FacturacionController {
     }
     
     private CAEResponse convertirCAE(CAE cae) {
+        CAEResponse response;
         if (cae.isExitoso()) {
-            return CAEResponse.exitoso(cae.getNumero(), cae.getFechaVencimiento());
+            response = CAEResponse.exitoso(cae.getNumero(), cae.getFechaVencimiento());
         } else {
-            return CAEResponse.error(cae.getMensajeError());
+            response = CAEResponse.error(cae.getMensajeError());
+        }
+        
+        // Agregar observaciones y respuesta de AFIP si están disponibles
+        if (cae.getObservaciones() != null) {
+            response.setObservaciones(cae.getObservaciones());
+        }
+        if (cae.getRespuestaAfip() != null) {
+            response.setAfipResponse(cae.getRespuestaAfip());
+        }
+        
+        return response;
+    }
+    
+    /**
+     * Determina qué servicio AFIP usar según el tipo de comprobante
+     * WSFE: Facturas A, B, C para Responsables Inscriptos
+     * WSMTXCA: Facturas C para Monotributistas
+     */
+    private String determinarServicio(int tipoComprobante) {
+        switch (tipoComprobante) {
+            case 1:  // Factura A - Solo WSFE (Responsable Inscripto)
+            case 6:  // Factura B - Solo WSFE (Responsable Inscripto)
+                return "wsfe";
+            case 11: // Factura C - WSFE o WSMTXCA según categoría
+                // Por ahora usar WSFE ya que el certificado no tiene permisos WSMTXCA
+                return "wsfe"; // Cambiar a "wsmtxca" cuando tengas permisos
+            default:
+                return "wsfe";
         }
     }
 }

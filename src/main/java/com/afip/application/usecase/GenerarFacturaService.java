@@ -20,7 +20,7 @@ public class GenerarFacturaService implements GenerarFacturaUseCase {
     }
     
     @Override
-    public CAE ejecutarConsumidorFinal(TipoComprobante tipo, int puntoVenta, BigDecimal importe) {
+    public CAE ejecutarConsumidorFinal(String servicio, TipoComprobante tipo, int puntoVenta, BigDecimal importe) {
         long proximoNumero = obtenerProximoNumero(puntoVenta, tipo.getCodigo());
         
         FacturaElectronica factura = new FacturaElectronica(
@@ -32,11 +32,11 @@ public class GenerarFacturaService implements GenerarFacturaUseCase {
             "Productos"
         );
         
-        return solicitarCAE.ejecutar(factura);
+        return solicitarCAE.ejecutar(servicio, factura);
     }
     
     @Override
-    public CAE ejecutarCliente(TipoComprobante tipo, int puntoVenta, BigDecimal importe, long cuitCliente) {
+    public CAE ejecutarCliente(String servicio, TipoComprobante tipo, int puntoVenta, BigDecimal importe, long cuitCliente) {
         long proximoNumero = obtenerProximoNumero(puntoVenta, tipo.getCodigo());
         
         FacturaElectronica factura = new FacturaElectronica(
@@ -48,7 +48,7 @@ public class GenerarFacturaService implements GenerarFacturaUseCase {
             "Productos"
         );
         
-        return solicitarCAE.ejecutar(factura);
+        return solicitarCAE.ejecutar(servicio, factura);
     }
     
     private long obtenerProximoNumero(int puntoVenta, int tipoComprobante) {

@@ -7,6 +7,8 @@ public class CAEResponse {
     private LocalDate fechaVencimiento;
     private boolean success;
     private String errorMessage;
+    private String observaciones;
+    private String respuestaXml;
     
     public CAEResponse() {}
     
@@ -51,5 +53,21 @@ public class CAEResponse {
     
     public void setErrorMessage(String errorMessage) {
         this.errorMessage = errorMessage;
+    }
+    
+    public String getObservaciones() {
+        return observaciones;
+    }
+    
+    public void setObservaciones(String observaciones) {
+        this.observaciones = observaciones;
+    }
+    
+    public String getRespuestaXml() {
+        return respuestaXml;
+    }
+    
+    public void setRespuestaXml(String respuestaXml) {
+        this.respuestaXml = respuestaXml;
     }
 }

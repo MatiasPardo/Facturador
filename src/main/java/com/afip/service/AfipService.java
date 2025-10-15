@@ -132,11 +132,13 @@ public class AfipService {
     public CAEResponse generarFactura(TipoComprobante tipo, int puntoVenta, BigDecimal importe, long cuitCliente) throws AfipAuthenticationException {
         try {
             com.afip.domain.model.TipoComprobante domainTipo = convertirTipoDominio(tipo);
+            String servicio = determinarServicio(tipo.getCodigo());
+            
             CAE cae;
             if (cuitCliente == 0) {
-                cae = generarFactura.ejecutarConsumidorFinal(domainTipo, puntoVenta, importe);
+                cae = generarFactura.ejecutarConsumidorFinal(servicio, domainTipo, puntoVenta, importe);
             } else {
-                cae = generarFactura.ejecutarCliente(domainTipo, puntoVenta, importe, cuitCliente);
+                cae = generarFactura.ejecutarCliente(servicio, domainTipo, puntoVenta, importe, cuitCliente);
             }
             
             return convertirCAE(cae);
@@ -147,7 +149,9 @@ public class AfipService {
     
     public CAEResponse generarComprobanteMonotributo(BigDecimal importe) throws AfipAuthenticationException {
         try {
+            String servicio = determinarServicio(11); // Factura C
             CAE cae = generarFactura.ejecutarConsumidorFinal(
+                servicio,
                 com.afip.domain.model.TipoComprobante.FACTURA_C, 
                 AfipConfig.PUNTO_VENTA_DEFAULT, 
                 importe
@@ -214,5 +218,17 @@ public class AfipService {
     
     public MonotributoAdapter getMonotributoAdapter() {
         return monotributoAdapter;
+    }
+    
+    private String determinarServicio(int tipoComprobante) {
+        switch (tipoComprobante) {
+            case 1:  // Factura A - Solo WSFE
+            case 6:  // Factura B - Solo WSFE
+                return "wsfe";
+            case 11: // Factura C - WSFE por limitaciones del certificado
+                return "wsfe"; // Cambiar a "wsmtxca" cuando tengas permisos
+            default:
+                return "wsfe";
+        }
     }
 }

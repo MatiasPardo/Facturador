@@ -26,9 +26,9 @@ public class AfipRepositoryImpl implements AfipRepository {
             CAEResponse response = afipAdapter.solicitarCAE(comprobante);
             
             if (response.isSuccess()) {
-                return CAE.exitoso(response.getCae(), response.getFechaVencimiento());
+                return CAE.exitoso(response.getCae(), response.getFechaVencimiento(), response.getRespuestaXml());
             } else {
-                return CAE.error(response.getErrorMessage());
+                return CAE.error(response.getErrorMessage(), response.getObservaciones(), response.getRespuestaXml());
             }
         } catch (Exception e) {
             return CAE.error("Error al solicitar CAE: " + e.getMessage());

@@ -4,26 +4,44 @@ import java.math.BigDecimal;
 
 public class FacturaRequest {
     
-    private String tipoComprobante;
     private int puntoVenta;
-    private BigDecimal importe;
-    private Long cuitCliente;
-    private String concepto;
+    private int tipoComprobante;
+    private String numeroDocumento;
+    private int tipoDocumento;
+    private BigDecimal importeTotal;
+    private BigDecimal importeNeto;
+    private BigDecimal importeIVA;
+    private String fechaComprobante;
     
     public FacturaRequest() {}
-    
-    public String getTipoComprobante() { return tipoComprobante; }
-    public void setTipoComprobante(String tipoComprobante) { this.tipoComprobante = tipoComprobante; }
     
     public int getPuntoVenta() { return puntoVenta; }
     public void setPuntoVenta(int puntoVenta) { this.puntoVenta = puntoVenta; }
     
-    public BigDecimal getImporte() { return importe; }
-    public void setImporte(BigDecimal importe) { this.importe = importe; }
+    public int getTipoComprobante() { return tipoComprobante; }
+    public void setTipoComprobante(int tipoComprobante) { this.tipoComprobante = tipoComprobante; }
     
-    public Long getCuitCliente() { return cuitCliente; }
-    public void setCuitCliente(Long cuitCliente) { this.cuitCliente = cuitCliente; }
+    public String getNumeroDocumento() { return numeroDocumento; }
+    public void setNumeroDocumento(String numeroDocumento) { this.numeroDocumento = numeroDocumento; }
     
-    public String getConcepto() { return concepto; }
-    public void setConcepto(String concepto) { this.concepto = concepto; }
+    public int getTipoDocumento() { return tipoDocumento; }
+    public void setTipoDocumento(int tipoDocumento) { this.tipoDocumento = tipoDocumento; }
+    
+    public BigDecimal getImporteTotal() { return importeTotal; }
+    public void setImporteTotal(BigDecimal importeTotal) { this.importeTotal = importeTotal; }
+    
+    public BigDecimal getImporteNeto() { return importeNeto; }
+    public void setImporteNeto(BigDecimal importeNeto) { this.importeNeto = importeNeto; }
+    
+    public BigDecimal getImporteIVA() { return importeIVA; }
+    public void setImporteIVA(BigDecimal importeIVA) { this.importeIVA = importeIVA; }
+    
+    public String getFechaComprobante() { return fechaComprobante; }
+    public void setFechaComprobante(String fechaComprobante) { this.fechaComprobante = fechaComprobante; }
+    
+    // Legacy methods for backward compatibility
+    public BigDecimal getImporte() { return importeTotal; }
+    public Long getCuitCliente() { 
+        return numeroDocumento != null ? Long.parseLong(numeroDocumento) : null; 
+    }
 }

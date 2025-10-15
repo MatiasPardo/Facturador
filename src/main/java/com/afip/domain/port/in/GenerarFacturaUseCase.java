@@ -6,6 +6,6 @@ import com.afip.domain.model.TipoComprobante;
 import java.math.BigDecimal;
 
 public interface GenerarFacturaUseCase {
-    CAE ejecutarConsumidorFinal(TipoComprobante tipo, int puntoVenta, BigDecimal importe);
-    CAE ejecutarCliente(TipoComprobante tipo, int puntoVenta, BigDecimal importe, long cuitCliente);
+    CAE ejecutarConsumidorFinal(String servicio, TipoComprobante tipo, int puntoVenta, BigDecimal importe);
+    CAE ejecutarCliente(String servicio, TipoComprobante tipo, int puntoVenta, BigDecimal importe, long cuitCliente);
 }

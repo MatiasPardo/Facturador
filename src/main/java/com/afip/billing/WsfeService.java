@@ -311,18 +311,40 @@ public class WsfeService {
     private CAEResponse parseCAEResponse(String soapResponse) {
         log.info("📩 Respuesta WSFE recibida");
         
+        CAEResponse response = new CAEResponse();
+        response.setRespuestaXml(soapResponse);
+        
         // Buscar CAE en la respuesta
         java.util.regex.Pattern caePattern = java.util.regex.Pattern.compile("<CAE>([^<]+)</CAE>");
         java.util.regex.Matcher caeMatcher = caePattern.matcher(soapResponse);
         
-        if (caeMatcher.find()) {
+        // Buscar observaciones
+        StringBuilder observaciones = new StringBuilder();
+        java.util.regex.Pattern obsPattern = java.util.regex.Pattern.compile("<Msg>([^<]+)</Msg>");
+        java.util.regex.Matcher obsMatcher = obsPattern.matcher(soapResponse);
+        while (obsMatcher.find()) {
+            if (observaciones.length() > 0) observaciones.append("; ");
+            observaciones.append(obsMatcher.group(1));
+        }
+        
+        if (caeMatcher.find() && !caeMatcher.group(1).trim().isEmpty()) {
             String cae = caeMatcher.group(1);
             log.info("✅ CAE encontrado: {}", cae);
-            return new CAEResponse(cae, java.time.LocalDate.now().plusDays(10));
+            response.setCae(cae);
+            response.setFechaVencimiento(java.time.LocalDate.now().plusDays(10));
+            response.setSuccess(true);
         } else {
             log.error("❌ Respuesta WSFE completa:\n{}", soapResponse);
-            return new CAEResponse("No se pudo obtener CAE - revisar respuesta en logs");
+            response.setSuccess(false);
+            response.setErrorMessage("No se pudo obtener CAE - revisar observaciones");
         }
+        
+        if (observaciones.length() > 0) {
+            response.setObservaciones(observaciones.toString());
+            log.warn("⚠️ Observaciones AFIP: {}", observaciones.toString());
+        }
+        
+        return response;
     }
     
     private long parseUltimoComprobanteResponse(String soapResponse) {

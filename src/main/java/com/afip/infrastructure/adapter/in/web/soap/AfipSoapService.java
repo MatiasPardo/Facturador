@@ -48,8 +48,11 @@ public class AfipSoapService {
                 cuitCliente, tipoDocumento, importeNeto, importeIva, importeTotal
             );
             
+            // Determinar servicio basado en tipo de comprobante
+            String servicio = determinarServicio(tipoComprobante);
+            
             // Solicitar CAE directamente (pasamanos)
-            CAE cae = solicitarCAE.ejecutar(factura);
+            CAE cae = solicitarCAE.ejecutar(servicio, factura);
             
             if (cae.isExitoso()) {
                 return crearRespuestaExitosa(cae);
@@ -117,5 +120,17 @@ public class AfipSoapService {
     
     private String crearRespuestaError(String mensaje) {
         return String.format("<?xml version=\"1.0\"?><response><success>false</success><error>%s</error></response>", mensaje);
+    }
+    
+    private String determinarServicio(int tipoComprobante) {
+        switch (tipoComprobante) {
+            case 1:  // Factura A - Solo WSFE
+            case 6:  // Factura B - Solo WSFE
+                return "wsfe";
+            case 11: // Factura C - WSFE por limitaciones del certificado
+                return "wsfe"; // Cambiar a "wsmtxca" cuando tengas permisos
+            default:
+                return "wsfe";
+        }
     }
 }

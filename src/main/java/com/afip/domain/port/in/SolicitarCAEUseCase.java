@@ -4,5 +4,5 @@ import com.afip.domain.model.CAE;
 import com.afip.domain.model.FacturaElectronica;
 
 public interface SolicitarCAEUseCase {
-    CAE ejecutar(FacturaElectronica factura);
+    CAE ejecutar(String servicio, FacturaElectronica factura);
 }

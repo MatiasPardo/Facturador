@@ -23,6 +23,32 @@ afip.wsfe.url=https://servicios1.afip.gov.ar/wsfev1/service.asmx
 afip.wsmtxca.url=https://servicios1.afip.gov.ar/wsmtxca/service.asmx
 ```
 
+## AFIP Services and Voucher Types Mapping
+
+### WSFE (Web Service Factura Electrónica)
+**Used by**: Responsables Inscriptos and Monotributistas with WSFE permissions
+- **Factura A** (Code 1): For registered taxpayers to other registered taxpayers
+- **Factura B** (Code 6): For registered taxpayers to final consumers
+- **Factura C** (Code 11): For monotributistas or when WSMTXCA is not available
+
+### WSMTXCA (Web Service Monotributo)
+**Used by**: Monotributistas with specific WSMTXCA permissions
+- **Factura C** (Code 11): Exclusive for monotributistas
+
+### Current Implementation
+**All voucher types use WSFE** due to certificate limitations. To use WSMTXCA:
+1. Request WSMTXCA permissions from AFIP for your certificate
+2. Change `return "wsfe"` to `return "wsmtxca"` in `determinarServicio()` method for Code 11
+
+### Voucher Type Selection Guide
+| Your Category | Client Type | Voucher Type | Service |
+|---------------|-------------|--------------|----------|
+| Responsable Inscripto | Responsable Inscripto | Factura A (1) | WSFE |
+| Responsable Inscripto | Consumidor Final | Factura B (6) | WSFE |
+| Monotributista | Any | Factura C (11) | WSMTXCA* |
+
+*Currently using WSFE for all due to certificate permissions
+
 ---
 
 ## 1. UI Console Interface
@@ -138,7 +164,7 @@ curl -X GET "http://localhost:8080/api/consultas/puntos-venta?service=wsfe"
 curl -X GET "http://localhost:8080/api/consultas/ultimo-comprobante?service=wsfe&puntoVenta=1&tipoComprobante=11"
 ```
 
-#### 4. Generate Invoice
+#### 4. Generate Invoice (with Client CUIT)
 ```bash
 curl -X POST http://localhost:8080/api/facturacion/generar \
   -H "Content-Type: application/json" \
@@ -154,6 +180,22 @@ curl -X POST http://localhost:8080/api/facturacion/generar \
   }'
 ```
 
+#### 5. Generate Invoice (Consumer Final - Factura B)
+```bash
+curl -X POST http://localhost:8080/api/facturacion/generar \
+  -H "Content-Type: application/json" \
+  -d '{
+    "puntoVenta": 1,
+    "tipoComprobante": 6,
+    "tipoDocumento": 99,
+    "importeTotal": 1000.00,
+    "importeNeto": 826.45,
+    "importeIVA": 173.55,
+    "fechaComprobante": "2024-01-15"
+  }'
+```
+```
+
 #### Expected JSON Response
 ```json
 {
@@ -161,9 +203,17 @@ curl -X POST http://localhost:8080/api/facturacion/generar \
   "cae": "74251234567890",
   "fechaVencimiento": "2024-01-20",
   "numeroComprobante": 16,
-  "message": "CAE generated successfully"
+  "message": "CAE generated successfully",
+  "observaciones": null,
+  "afipResponse": "<?xml version=\"1.0\" encoding=\"utf-8\"?>..."
 }
 ```
+
+**Note**: For consumer final invoices, use:
+- **Factura B** (code 6): For amounts with IVA included
+- **Factura C** (code 11): For monotributista (no IVA breakdown)
+- **tipoDocumento**: 99 (Consumer Final)
+- **numeroDocumento**: Can be omitted or empty
 
 ---
 

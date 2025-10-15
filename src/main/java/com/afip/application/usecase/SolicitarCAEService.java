@@ -2,7 +2,6 @@ package com.afip.application.usecase;
 
 import com.afip.domain.model.CAE;
 import com.afip.domain.model.FacturaElectronica;
-import com.afip.domain.model.TipoComprobante;
 import com.afip.domain.port.in.SolicitarCAEUseCase;
 import com.afip.domain.port.out.AfipRepository;
 import com.afip.domain.port.out.MonotributoRepository;
@@ -18,8 +17,8 @@ public class SolicitarCAEService implements SolicitarCAEUseCase {
     }
     
     @Override
-    public CAE ejecutar(FacturaElectronica factura) {
-        if (factura.getTipo() == TipoComprobante.FACTURA_C && esMonotributo()) {
+    public CAE ejecutar(String servicio, FacturaElectronica factura) {
+        if ("wsmtxca".equals(servicio)) {
             return monotributoRepository.solicitarCAEMonotributo(factura);
         }
         return afipRepository.solicitarCAE(factura);
