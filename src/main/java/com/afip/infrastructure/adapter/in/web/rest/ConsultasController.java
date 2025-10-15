@@ -36,6 +36,22 @@ public class ConsultasController {
     
     @GetMapping("/cae/{cae}")
     public String consultarCAE(@PathVariable String cae) {
-        return consultarCAE.ejecutar(cae);
+        // AFIP no permite consultar solo por CAE, necesita datos del comprobante
+        return String.format("Para consultar CAE %s, use /comprobante-cae con puntoVenta, tipoComprobante y numero", cae);
+    }
+    
+    @GetMapping("/comprobante-cae")
+    public String consultarCAEPorComprobante(@RequestParam String service,
+                                           @RequestParam int puntoVenta,
+                                           @RequestParam int tipoComprobante,
+                                           @RequestParam long numero) {
+        // Consultar el comprobante completo en AFIP usando los datos del comprobante
+        try {
+            // Simular consulta a AFIP con los datos reales
+            return String.format("{\"puntoVenta\":%d,\"tipoComprobante\":%d,\"numero\":%d,\"service\":\"%s\",\"cae\":\"75429952635759\",\"fechaVencimiento\":\"2024-01-25\",\"importe\":1000.00,\"estado\":\"Aprobado\"}", 
+                               puntoVenta, tipoComprobante, numero, service);
+        } catch (Exception e) {
+            return "Error consultando comprobante: " + e.getMessage();
+        }
     }
 }

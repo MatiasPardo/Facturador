@@ -93,6 +93,21 @@ public class WsfeService {
         }
     }
     
+    public String consultarComprobantePorDatos(int puntoVenta, int tipoComprobante, long numero, AfipCredentials credentials) {
+        try {
+            log.info("🔍 Consultando comprobante PV:{} Tipo:{} Num:{}", puntoVenta, tipoComprobante, numero);
+            
+            String soapRequest = buildConsultaComprobanteRequest(puntoVenta, tipoComprobante, numero, credentials);
+            String soapResponse = sendSoapRequest(soapRequest, "http://ar.gov.afip.dif.FEV1/FECompConsultar");
+            
+            return parseConsultaCAEResponse(soapResponse);
+            
+        } catch (Exception e) {
+            log.error("❌ Error al consultar comprobante", e);
+            return "Error: " + e.getMessage();
+        }
+    }
+    
     private String buildCAERequest(Comprobante comprobante, AfipCredentials credentials) throws Exception {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         factory.setNamespaceAware(true);
@@ -467,6 +482,73 @@ public class WsfeService {
         org.w3c.dom.Element caeElement = doc.createElement("wsfe:CAE");
         caeElement.setTextContent(cae);
         feCompConsReq.appendChild(caeElement);
+        
+        // Convertir a String
+        TransformerFactory tf = TransformerFactory.newInstance();
+        Transformer transformer = tf.newTransformer();
+        transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
+        transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+        
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        transformer.transform(new DOMSource(doc), new StreamResult(outputStream));
+        return outputStream.toString(StandardCharsets.UTF_8);
+    }
+    
+    private String buildConsultaComprobanteRequest(int puntoVenta, int tipoComprobante, long numero, AfipCredentials credentials) throws Exception {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        factory.setNamespaceAware(true);
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        org.w3c.dom.Document doc = builder.newDocument();
+        
+        // SOAP Envelope
+        org.w3c.dom.Element envelope = doc.createElementNS("http://schemas.xmlsoap.org/soap/envelope/", "soapenv:Envelope");
+        envelope.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:wsfe", "http://ar.gov.afip.dif.FEV1/");
+        doc.appendChild(envelope);
+        
+        // Header
+        org.w3c.dom.Element header = doc.createElement("soapenv:Header");
+        envelope.appendChild(header);
+        
+        // Body
+        org.w3c.dom.Element body = doc.createElement("soapenv:Body");
+        envelope.appendChild(body);
+        
+        // FECompConsultar
+        org.w3c.dom.Element feCompConsultar = doc.createElement("wsfe:FECompConsultar");
+        body.appendChild(feCompConsultar);
+        
+        // Auth
+        org.w3c.dom.Element auth = doc.createElement("wsfe:Auth");
+        feCompConsultar.appendChild(auth);
+        
+        org.w3c.dom.Element token = doc.createElement("wsfe:Token");
+        token.setTextContent(credentials.getToken());
+        auth.appendChild(token);
+        
+        org.w3c.dom.Element sign = doc.createElement("wsfe:Sign");
+        sign.setTextContent(credentials.getSign());
+        auth.appendChild(sign);
+        
+        org.w3c.dom.Element cuit = doc.createElement("wsfe:Cuit");
+        cuit.setTextContent("27362932039");
+        auth.appendChild(cuit);
+        
+        // FeCompConsReq
+        org.w3c.dom.Element feCompConsReq = doc.createElement("wsfe:FeCompConsReq");
+        feCompConsultar.appendChild(feCompConsReq);
+        
+        org.w3c.dom.Element ptoVta = doc.createElement("wsfe:PtoVta");
+        ptoVta.setTextContent(String.valueOf(puntoVenta));
+        feCompConsReq.appendChild(ptoVta);
+        
+        org.w3c.dom.Element cbteTipo = doc.createElement("wsfe:CbteTipo");
+        cbteTipo.setTextContent(String.valueOf(tipoComprobante));
+        feCompConsReq.appendChild(cbteTipo);
+        
+        org.w3c.dom.Element cbteNro = doc.createElement("wsfe:CbteNro");
+        cbteNro.setTextContent(String.valueOf(numero));
+        feCompConsReq.appendChild(cbteNro);
         
         // Convertir a String
         TransformerFactory tf = TransformerFactory.newInstance();

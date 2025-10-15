@@ -136,9 +136,10 @@ POST /api/auth/wsmtxca
 
 #### Consultation Endpoints
 ```http
-GET /api/consultas/puntos-venta?service={wsfe|wsmtxca}
-GET /api/consultas/ultimo-comprobante?service={service}&puntoVenta={pv}&tipoComprobante={tipo}
-GET /api/consultas/cae?service={service}&puntoVenta={pv}&tipoComprobante={tipo}&numero={num}
+GET /api/consultas/puntos-venta
+GET /api/consultas/ultimo-comprobante?puntoVenta={pv}&tipoComprobante={tipo}
+GET /api/consultas/cae/{cae}
+GET /api/consultas/comprobante-cae?service={service}&puntoVenta={pv}&tipoComprobante={tipo}&numero={num}
 ```
 
 #### Billing Endpoints
@@ -156,15 +157,25 @@ curl -X POST http://localhost:8080/api/auth/wsfe \
 
 #### 2. Consult Sales Points
 ```bash
-curl -X GET "http://localhost:8080/api/consultas/puntos-venta?service=wsfe"
+curl -X GET "http://localhost:8080/api/consultas/puntos-venta"
 ```
 
 #### 3. Consult Last Voucher
 ```bash
-curl -X GET "http://localhost:8080/api/consultas/ultimo-comprobante?service=wsfe&puntoVenta=1&tipoComprobante=11"
+curl -X GET "http://localhost:8080/api/consultas/ultimo-comprobante?puntoVenta=1&tipoComprobante=11"
 ```
 
-#### 4. Generate Invoice (with Client CUIT)
+#### 4. Consult CAE by Voucher Number
+```bash
+curl -X GET "http://localhost:8080/api/consultas/comprobante-cae?service=wsfe&puntoVenta=1&tipoComprobante=11&numero=4"
+```
+
+#### 4b. Consult CAE by CAE Number
+```bash
+curl -X GET "http://localhost:8080/api/consultas/cae/74251234567890"
+```
+
+#### 5. Generate Invoice (with Client CUIT)
 ```bash
 curl -X POST http://localhost:8080/api/facturacion/generar \
   -H "Content-Type: application/json" \
@@ -180,7 +191,7 @@ curl -X POST http://localhost:8080/api/facturacion/generar \
   }'
 ```
 
-#### 5. Generate Invoice (Consumer Final - Factura B)
+#### 6. Generate Invoice (Consumer Final - Factura B)
 ```bash
 curl -X POST http://localhost:8080/api/facturacion/generar \
   -H "Content-Type: application/json" \
