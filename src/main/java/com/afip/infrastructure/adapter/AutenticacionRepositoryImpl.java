@@ -1,4 +1,4 @@
-package com.afip.infrastructure.adapter.out;
+package com.afip.infrastructure.adapter;
 
 import com.afip.adapter.AfipAdapter;
 import com.afip.adapter.MonotributoAdapter;
@@ -40,7 +40,7 @@ public class AutenticacionRepositoryImpl implements AutenticacionRepository {
     
     @Override
     public void limpiarCredenciales() {
-        CredentialsManager.clearCredentials();
+        CredentialsManager.clearAllCredentials();
     }
     
     @Override

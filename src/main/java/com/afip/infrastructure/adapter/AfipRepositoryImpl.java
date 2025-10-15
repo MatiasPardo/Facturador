@@ -1,4 +1,4 @@
-package com.afip.infrastructure.adapter.out;
+package com.afip.infrastructure.adapter;
 
 import com.afip.adapter.AfipAdapter;
 import com.afip.billing.model.CAEResponse;

@@ -24,6 +24,7 @@ public class AfipService {
     private static final Logger log = LoggerFactory.getLogger(AfipService.class);
     private AfipAdapter wsfeAdapter;
     private MonotributoAdapter monotributoAdapter;
+    private AutenticacionRepositoryImpl autenticacionRepository;
     
     // Casos de uso específicos
     private ConsultarPuntosVentaUseCase consultarPuntosVenta;
@@ -51,7 +52,7 @@ public class AfipService {
         // Crear repositorios
         AfipRepositoryImpl afipRepository = new AfipRepositoryImpl(wsfeAdapter);
         MonotributoRepositoryImpl monotributoRepository = new MonotributoRepositoryImpl(monotributoAdapter);
-        AutenticacionRepositoryImpl autenticacionRepository = new AutenticacionRepositoryImpl(wsfeAdapter, monotributoAdapter);
+        this.autenticacionRepository = new AutenticacionRepositoryImpl(wsfeAdapter, monotributoAdapter);
         
         // Crear casos de uso específicos
         consultarPuntosVenta = new ConsultarPuntosVentaService(afipRepository);
@@ -59,8 +60,8 @@ public class AfipService {
         consultarCAE = new ConsultarCAEService(afipRepository);
         solicitarCAE = new SolicitarCAEService(afipRepository, monotributoRepository);
         generarFactura = new GenerarFacturaService(consultarUltimoComprobante, solicitarCAE);
-        autenticarWSFE = new AutenticarWSFEService(autenticacionRepository);
-        autenticarWSMTXCA = new AutenticarWSMTXCAService(autenticacionRepository);
+        autenticarWSFE = new AutenticarWSFEService(this.autenticacionRepository);
+        autenticarWSMTXCA = new AutenticarWSMTXCAService(this.autenticacionRepository);
         
         // Autenticar
         wsfeAdapter.authenticate();
@@ -88,9 +89,8 @@ public class AfipService {
     }
     
     public void verificarCredenciales() {
-        // Implementar verificación usando repositorio
-        log.info("WSFE válido: {}", true);
-        log.info("WSMTXCA válido: {}", true);
+        log.info("WSFE válido: {}", autenticacionRepository.tieneCredencialesValidas("wsfe"));
+        log.info("WSMTXCA válido: {}", autenticacionRepository.tieneCredencialesValidas("wsmtxca"));
     }
     
     // === CONSULTAS ===
@@ -165,9 +165,12 @@ public class AfipService {
     // === UTILIDADES ===
     
     public void limpiarCredenciales() {
-        wsfeAdapter.clearCredentials();
-        monotributoAdapter.clearCredentials();
-        log.info("✅ Credenciales eliminadas");
+        try {
+            autenticacionRepository.limpiarCredenciales();
+            log.info("✅ Credenciales eliminadas");
+        } catch (Exception e) {
+            log.error("❌ Error limpiando credenciales: {}", e.getMessage());
+        }
     }
     
     public void verificarServicios() throws AfipAuthenticationException {
