@@ -95,6 +95,17 @@ public class AfipAdapter {
     }
     
     /**
+     * Consulta un comprobante por su CAE
+     */
+    public String consultarComprobantePorCAE(String cae) throws AfipAuthenticationException {
+        ensureAuthenticated();
+        
+        log.info("🔍 Consultando comprobante por CAE: {}", cae);
+        
+        return wsfeService.consultarComprobantePorCAE(cae, currentCredentials);
+    }
+    
+    /**
      * Verifica si hay credenciales válidas, si no las hay, autentica automáticamente
      */
     private void ensureAuthenticated() throws AfipAuthenticationException {

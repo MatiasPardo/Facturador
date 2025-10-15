@@ -78,6 +78,21 @@ public class WsfeService {
         }
     }
     
+    public String consultarComprobantePorCAE(String cae, AfipCredentials credentials) {
+        try {
+            log.info("🔍 Consultando comprobante por CAE: {}", cae);
+            
+            String soapRequest = buildConsultaCAERequest(cae, credentials);
+            String soapResponse = sendSoapRequest(soapRequest, "http://ar.gov.afip.dif.FEV1/FECompConsultar");
+            
+            return parseConsultaCAEResponse(soapResponse);
+            
+        } catch (Exception e) {
+            log.error("❌ Error al consultar CAE", e);
+            return "Error: " + e.getMessage();
+        }
+    }
+    
     private String buildCAERequest(Comprobante comprobante, AfipCredentials credentials) throws Exception {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         factory.setNamespaceAware(true);
@@ -382,5 +397,70 @@ public class WsfeService {
         // Implementar parsing de puntos de venta
         log.info("📩 Respuesta puntos de venta recibida");
         return java.util.Arrays.asList(1, 2, 3); // Placeholder
+    }
+    
+    private String buildConsultaCAERequest(String cae, AfipCredentials credentials) throws Exception {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        factory.setNamespaceAware(true);
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        org.w3c.dom.Document doc = builder.newDocument();
+        
+        // SOAP Envelope
+        org.w3c.dom.Element envelope = doc.createElementNS("http://schemas.xmlsoap.org/soap/envelope/", "soapenv:Envelope");
+        envelope.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:wsfe", "http://ar.gov.afip.dif.FEV1/");
+        doc.appendChild(envelope);
+        
+        // Header
+        org.w3c.dom.Element header = doc.createElement("soapenv:Header");
+        envelope.appendChild(header);
+        
+        // Body
+        org.w3c.dom.Element body = doc.createElement("soapenv:Body");
+        envelope.appendChild(body);
+        
+        // FECompConsultar
+        org.w3c.dom.Element feCompConsultar = doc.createElement("wsfe:FECompConsultar");
+        body.appendChild(feCompConsultar);
+        
+        // Auth
+        org.w3c.dom.Element auth = doc.createElement("wsfe:Auth");
+        feCompConsultar.appendChild(auth);
+        
+        org.w3c.dom.Element token = doc.createElement("wsfe:Token");
+        token.setTextContent(credentials.getToken());
+        auth.appendChild(token);
+        
+        org.w3c.dom.Element sign = doc.createElement("wsfe:Sign");
+        sign.setTextContent(credentials.getSign());
+        auth.appendChild(sign);
+        
+        org.w3c.dom.Element cuit = doc.createElement("wsfe:Cuit");
+        cuit.setTextContent("27362932039");
+        auth.appendChild(cuit);
+        
+        // FeCompConsReq
+        org.w3c.dom.Element feCompConsReq = doc.createElement("wsfe:FeCompConsReq");
+        feCompConsultar.appendChild(feCompConsReq);
+        
+        org.w3c.dom.Element caeElement = doc.createElement("wsfe:CAE");
+        caeElement.setTextContent(cae);
+        feCompConsReq.appendChild(caeElement);
+        
+        // Convertir a String
+        TransformerFactory tf = TransformerFactory.newInstance();
+        Transformer transformer = tf.newTransformer();
+        transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
+        transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+        
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        transformer.transform(new DOMSource(doc), new StreamResult(outputStream));
+        return outputStream.toString(StandardCharsets.UTF_8);
+    }
+    
+    private String parseConsultaCAEResponse(String soapResponse) {
+        log.info("📩 Respuesta consulta CAE recibida");
+        log.info("📄 Respuesta completa:\n{}", soapResponse);
+        return soapResponse;
     }
 }

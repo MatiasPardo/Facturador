@@ -24,4 +24,13 @@ public enum TipoComprobante {
     public String getDescripcion() {
         return descripcion;
     }
+    
+    public static TipoComprobante fromCodigo(int codigo) {
+        for (TipoComprobante tipo : values()) {
+            if (tipo.codigo == codigo) {
+                return tipo;
+            }
+        }
+        throw new IllegalArgumentException("Código de comprobante no válido: " + codigo);
+    }
 }
