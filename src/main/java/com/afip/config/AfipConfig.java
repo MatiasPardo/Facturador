@@ -1,7 +1,5 @@
 package com.afip.config;
 
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.Properties;
 
 public class AfipConfig {
@@ -10,9 +8,17 @@ public class AfipConfig {
     
     static {
         try {
-            props.load(new FileInputStream("src/main/resources/application.properties"));
-        } catch (IOException e) {
-            // Usar valores por defecto si no se encuentra el archivo
+            // Intentar cargar desde classpath (dentro del JAR)
+            java.io.InputStream is = AfipConfig.class.getClassLoader().getResourceAsStream("application.properties");
+            if (is != null) {
+                props.load(is);
+                System.out.println("✅ Properties cargadas correctamente");
+                System.out.println("📁 Ruta certificado: " + props.getProperty("afip.cert.path", "NO ENCONTRADA"));
+            } else {
+                System.out.println("❌ No se encontró application.properties en classpath");
+            }
+        } catch (Exception e) {
+            System.out.println("❌ Error cargando properties: " + e.getMessage());
         }
     }
     

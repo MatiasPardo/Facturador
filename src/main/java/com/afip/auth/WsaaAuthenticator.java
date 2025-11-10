@@ -85,7 +85,8 @@ public class WsaaAuthenticator {
     }
     
     private String generateLoginTicketRequest(String service) throws Exception {
-        ZonedDateTime now = ZonedDateTime.now();
+        // Usar zona horaria de Argentina para AFIP
+        ZonedDateTime now = ZonedDateTime.now(java.time.ZoneId.of("America/Argentina/Buenos_Aires"));
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
         
         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -219,8 +220,26 @@ public class WsaaAuthenticator {
         java.util.regex.Matcher expirationMatcher = expirationPattern.matcher(soapResponse);
         
         if (!tokenMatcher.find() || !signMatcher.find()) {
-            log.error("❌ Respuesta WSAA completa para diagnóstico:\n{}", soapResponse);
-            throw new AfipAuthenticationException("No se pudieron extraer token y sign de la respuesta");
+            // Escribir respuesta completa a archivo para diagnóstico
+            try {
+                java.io.FileWriter writer = new java.io.FileWriter("/opt/AFIP/afip-response-debug.xml");
+                writer.write(soapResponse);
+                writer.close();
+                log.error("📄 Respuesta AFIP guardada en /opt/AFIP/afip-response-debug.xml");
+            } catch (Exception e) {
+                log.error("❌ Error guardando respuesta: {}", e.getMessage());
+            }
+            
+            // Buscar errores específicos en la respuesta
+            if (soapResponse.contains("soap:Fault") || soapResponse.contains("faultstring")) {
+                java.util.regex.Pattern faultPattern = java.util.regex.Pattern.compile("<faultstring>([^<]+)</faultstring>");
+                java.util.regex.Matcher faultMatcher = faultPattern.matcher(soapResponse);
+                if (faultMatcher.find()) {
+                    throw new AfipAuthenticationException("Error AFIP: " + faultMatcher.group(1));
+                }
+            }
+            
+            throw new AfipAuthenticationException("No se pudieron extraer token y sign - Ver archivo /opt/AFIP/afip-response-debug.xml");
         }
         
         String token = tokenMatcher.group(1);

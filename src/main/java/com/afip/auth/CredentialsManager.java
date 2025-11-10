@@ -14,7 +14,18 @@ import java.util.Properties;
 public class CredentialsManager {
     
     private static final Logger log = LoggerFactory.getLogger(CredentialsManager.class);
-    private static final String CREDENTIALS_FILE = "afip-credentials.properties";
+    private static final String CREDENTIALS_FILE = getCredentialsFilePath();
+    
+    private static String getCredentialsFilePath() {
+        // En Linux usar directorio de trabajo actual, en Windows usar temp
+        String os = System.getProperty("os.name").toLowerCase();
+        if (os.contains("win")) {
+            return "afip-credentials.properties";
+        } else {
+            // En Linux usar directorio de trabajo actual (/opt/AFIP)
+            return System.getProperty("user.dir") + "/afip-credentials.properties";
+        }
+    }
     
     public static void saveCredentials(String service, AfipCredentials credentials) {
         try {
