@@ -70,4 +70,32 @@ public class GenerarFacturaService implements GenerarFacturaUseCase {
         BigDecimal neto = calcularImporteNeto(tipo, importeTotal);
         return importeTotal.subtract(neto);
     }
+    
+    @Override
+    public CAE ejecutarConsumidorFinalConNumero(String servicio, TipoComprobante tipo, int puntoVenta, long numeroComprobante, BigDecimal importe) {
+        FacturaElectronica factura = new FacturaElectronica(
+            tipo, puntoVenta, numeroComprobante, LocalDate.now(),
+            Cliente.consumidorFinal(),
+            calcularImporteNeto(tipo, importe),
+            calcularImporteIva(tipo, importe),
+            importe,
+            "Productos"
+        );
+        
+        return solicitarCAE.ejecutar(servicio, factura);
+    }
+    
+    @Override
+    public CAE ejecutarClienteConNumero(String servicio, TipoComprobante tipo, int puntoVenta, long numeroComprobante, BigDecimal importe, long cuitCliente) {
+        FacturaElectronica factura = new FacturaElectronica(
+            tipo, puntoVenta, numeroComprobante, LocalDate.now(),
+            Cliente.conCuit(cuitCliente),
+            calcularImporteNeto(tipo, importe),
+            calcularImporteIva(tipo, importe),
+            importe,
+            "Productos"
+        );
+        
+        return solicitarCAE.ejecutar(servicio, factura);
+    }
 }

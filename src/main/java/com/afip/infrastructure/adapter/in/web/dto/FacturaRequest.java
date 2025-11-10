@@ -6,6 +6,7 @@ public class FacturaRequest {
     
     private int puntoVenta;
     private int tipoComprobante;
+    private Long numeroComprobante;
     private String numeroDocumento;
     private int tipoDocumento;
     private BigDecimal importeTotal;
@@ -20,6 +21,9 @@ public class FacturaRequest {
     
     public int getTipoComprobante() { return tipoComprobante; }
     public void setTipoComprobante(int tipoComprobante) { this.tipoComprobante = tipoComprobante; }
+    
+    public Long getNumeroComprobante() { return numeroComprobante; }
+    public void setNumeroComprobante(Long numeroComprobante) { this.numeroComprobante = numeroComprobante; }
     
     public String getNumeroDocumento() { return numeroDocumento; }
     public void setNumeroDocumento(String numeroDocumento) { this.numeroDocumento = numeroDocumento; }

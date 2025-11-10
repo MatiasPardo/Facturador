@@ -144,7 +144,7 @@ public class WsfeService {
         auth.appendChild(sign);
         
         org.w3c.dom.Element cuit = doc.createElement("wsfe:Cuit");
-        cuit.setTextContent("27362932039"); // Tu CUIT
+        cuit.setTextContent(com.afip.config.AfipConfig.CUIT_EMISOR);
         auth.appendChild(cuit);
         
         // FeCAEReq
@@ -238,7 +238,7 @@ public class WsfeService {
         
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         transformer.transform(new DOMSource(doc), new StreamResult(outputStream));
-        return outputStream.toString(StandardCharsets.UTF_8);
+        return outputStream.toString("UTF-8");
     }
     
     private String buildUltimoComprobanteRequest(int puntoVenta, int tipoComprobante, AfipCredentials credentials) throws Exception {
@@ -277,7 +277,7 @@ public class WsfeService {
         auth.appendChild(sign);
         
         org.w3c.dom.Element cuit = doc.createElement("wsfe:Cuit");
-        cuit.setTextContent("27362932039");
+        cuit.setTextContent(com.afip.config.AfipConfig.CUIT_EMISOR);
         auth.appendChild(cuit);
         
         // Parámetros
@@ -298,7 +298,7 @@ public class WsfeService {
         
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         transformer.transform(new DOMSource(doc), new StreamResult(outputStream));
-        return outputStream.toString(StandardCharsets.UTF_8);
+        return outputStream.toString("UTF-8");
     }
     
     private String sendSoapRequest(String soapEnvelope, String soapAction) throws Exception {
@@ -320,7 +320,13 @@ public class WsfeService {
                 ? connection.getInputStream()
                 : connection.getErrorStream();
         
-        return new String(responseStream.readAllBytes(), StandardCharsets.UTF_8);
+        java.io.ByteArrayOutputStream buffer = new java.io.ByteArrayOutputStream();
+        int nRead;
+        byte[] data = new byte[1024];
+        while ((nRead = responseStream.read(data, 0, data.length)) != -1) {
+            buffer.write(data, 0, nRead);
+        }
+        return buffer.toString("UTF-8");
     }
     
     private CAEResponse parseCAEResponse(String soapResponse) {
@@ -333,16 +339,31 @@ public class WsfeService {
         java.util.regex.Pattern caePattern = java.util.regex.Pattern.compile("<CAE>([^<]+)</CAE>");
         java.util.regex.Matcher caeMatcher = caePattern.matcher(soapResponse);
         
-        // Buscar observaciones
-        StringBuilder observaciones = new StringBuilder();
-        java.util.regex.Pattern obsPattern = java.util.regex.Pattern.compile("<Msg>([^<]+)</Msg>");
-        java.util.regex.Matcher obsMatcher = obsPattern.matcher(soapResponse);
-        while (obsMatcher.find()) {
-            if (observaciones.length() > 0) observaciones.append("; ");
-            observaciones.append(obsMatcher.group(1));
+        // Buscar resultado
+        java.util.regex.Pattern resultPattern = java.util.regex.Pattern.compile("<Resultado>([^<]+)</Resultado>");
+        java.util.regex.Matcher resultMatcher = resultPattern.matcher(soapResponse);
+        boolean isRejected = resultMatcher.find() && "R".equals(resultMatcher.group(1));
+        
+        // Buscar errores y observaciones
+        StringBuilder mensajes = new StringBuilder();
+        
+        // Errores (más importantes)
+        java.util.regex.Pattern errorPattern = java.util.regex.Pattern.compile("<Errors>.*?<Err>.*?<Code>([^<]+)</Code>.*?<Msg>([^<]+)</Msg>.*?</Err>.*?</Errors>", java.util.regex.Pattern.DOTALL);
+        java.util.regex.Matcher errorMatcher = errorPattern.matcher(soapResponse);
+        while (errorMatcher.find()) {
+            if (mensajes.length() > 0) mensajes.append("; ");
+            mensajes.append("Error ").append(errorMatcher.group(1)).append(": ").append(errorMatcher.group(2));
         }
         
-        if (caeMatcher.find() && !caeMatcher.group(1).trim().isEmpty()) {
+        // Eventos/Observaciones
+        java.util.regex.Pattern eventPattern = java.util.regex.Pattern.compile("<Events>.*?<Evt>.*?<Code>([^<]+)</Code>.*?<Msg>([^<]+)</Msg>.*?</Evt>.*?</Events>", java.util.regex.Pattern.DOTALL);
+        java.util.regex.Matcher eventMatcher = eventPattern.matcher(soapResponse);
+        while (eventMatcher.find()) {
+            if (mensajes.length() > 0) mensajes.append("; ");
+            mensajes.append("Evento ").append(eventMatcher.group(1)).append(": ").append(eventMatcher.group(2));
+        }
+        
+        if (caeMatcher.find() && !caeMatcher.group(1).trim().isEmpty() && !isRejected) {
             String cae = caeMatcher.group(1);
             log.info("✅ CAE encontrado: {}", cae);
             response.setCae(cae);
@@ -351,12 +372,16 @@ public class WsfeService {
         } else {
             log.error("❌ Respuesta WSFE completa:\n{}", soapResponse);
             response.setSuccess(false);
-            response.setErrorMessage("No se pudo obtener CAE - revisar observaciones");
+            if (mensajes.length() > 0) {
+                response.setErrorMessage(mensajes.toString());
+            } else {
+                response.setErrorMessage("Solicitud rechazada por AFIP");
+            }
         }
         
-        if (observaciones.length() > 0) {
-            response.setObservaciones(observaciones.toString());
-            log.warn("⚠️ Observaciones AFIP: {}", observaciones.toString());
+        if (mensajes.length() > 0) {
+            response.setObservaciones(mensajes.toString());
+            log.warn("⚠️ Mensajes AFIP: {}", mensajes.toString());
         }
         
         return response;
@@ -415,7 +440,7 @@ public class WsfeService {
         auth.appendChild(sign);
         
         org.w3c.dom.Element cuit = doc.createElement("wsfe:Cuit");
-        cuit.setTextContent("27362932039"); // Tu CUIT
+        cuit.setTextContent(com.afip.config.AfipConfig.CUIT_EMISOR);
         auth.appendChild(cuit);
         
         // Convertir a String
@@ -427,7 +452,7 @@ public class WsfeService {
         
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         transformer.transform(new DOMSource(doc), new StreamResult(outputStream));
-        return outputStream.toString(StandardCharsets.UTF_8);
+        return outputStream.toString("UTF-8");
     }
     
     private java.util.List<Integer> parsePuntosVentaResponse(String soapResponse) {
@@ -492,7 +517,7 @@ public class WsfeService {
         
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         transformer.transform(new DOMSource(doc), new StreamResult(outputStream));
-        return outputStream.toString(StandardCharsets.UTF_8);
+        return outputStream.toString("UTF-8");
     }
     
     private String buildConsultaComprobanteRequest(int puntoVenta, int tipoComprobante, long numero, AfipCredentials credentials) throws Exception {
@@ -559,7 +584,7 @@ public class WsfeService {
         
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         transformer.transform(new DOMSource(doc), new StreamResult(outputStream));
-        return outputStream.toString(StandardCharsets.UTF_8);
+        return outputStream.toString("UTF-8");
     }
     
     private String parseConsultaCAEResponse(String soapResponse) {

@@ -106,18 +106,22 @@ public class AfipAdapter {
     }
     
     /**
-     * Verifica si hay credenciales válidas, si no las hay, autentica automáticamente
+     * Verifica si hay credenciales válidas, si no las hay o están expiradas, autentica automáticamente
      */
     private void ensureAuthenticated() throws AfipAuthenticationException {
-        if (currentCredentials == null) {
+        if (currentCredentials == null || currentCredentials.isExpired()) {
+            if (currentCredentials != null && currentCredentials.isExpired()) {
+                log.warn("⏰ Token expirado para {}, renovando automáticamente...", WSFE_SERVICE);
+            }
+            
             // Intentar cargar credenciales guardadas para WSFE
             currentCredentials = CredentialsManager.loadCredentials(WSFE_SERVICE);
             
-            if (currentCredentials == null) {
-                log.info("⚠️ No hay credenciales válidas para {}, autenticando...", WSFE_SERVICE);
+            if (currentCredentials == null || currentCredentials.isExpired()) {
+                log.info("🔄 Autenticando {} (token expirado o inexistente)...", WSFE_SERVICE);
                 authenticate();
             } else {
-                log.info("✅ Usando credenciales guardadas para {}", WSFE_SERVICE);
+                log.info("✅ Usando credenciales guardadas válidas para {}", WSFE_SERVICE);
             }
         }
     }

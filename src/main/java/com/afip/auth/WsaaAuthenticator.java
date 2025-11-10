@@ -172,7 +172,7 @@ public class WsaaAuthenticator {
         
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         transformer.transform(new DOMSource(doc), new StreamResult(outputStream));
-        return outputStream.toString(StandardCharsets.UTF_8);
+        return outputStream.toString("UTF-8");
     }
     
     private String sendSoapRequest(String soapEnvelope) throws Exception {
@@ -194,7 +194,13 @@ public class WsaaAuthenticator {
                 ? connection.getInputStream()
                 : connection.getErrorStream();
         
-        return new String(responseStream.readAllBytes(), StandardCharsets.UTF_8);
+        java.io.ByteArrayOutputStream buffer = new java.io.ByteArrayOutputStream();
+        int nRead;
+        byte[] data = new byte[1024];
+        while ((nRead = responseStream.read(data, 0, data.length)) != -1) {
+            buffer.write(data, 0, nRead);
+        }
+        return buffer.toString("UTF-8");
     }
     
     private AfipCredentials parseWsaaResponse(String soapResponse, String service) throws AfipAuthenticationException {
@@ -206,9 +212,11 @@ public class WsaaAuthenticator {
         
         java.util.regex.Pattern tokenPattern = java.util.regex.Pattern.compile("&lt;token&gt;([^&]+)&lt;/token&gt;");
         java.util.regex.Pattern signPattern = java.util.regex.Pattern.compile("&lt;sign&gt;([^&]+)&lt;/sign&gt;");
+        java.util.regex.Pattern expirationPattern = java.util.regex.Pattern.compile("&lt;expirationTime&gt;([^&]+)&lt;/expirationTime&gt;");
         
         java.util.regex.Matcher tokenMatcher = tokenPattern.matcher(soapResponse);
         java.util.regex.Matcher signMatcher = signPattern.matcher(soapResponse);
+        java.util.regex.Matcher expirationMatcher = expirationPattern.matcher(soapResponse);
         
         if (!tokenMatcher.find() || !signMatcher.find()) {
             log.error("❌ Respuesta WSAA completa para diagnóstico:\n{}", soapResponse);
@@ -218,10 +226,23 @@ public class WsaaAuthenticator {
         String token = tokenMatcher.group(1);
         String sign = signMatcher.group(1);
         
+        // Extraer fecha de expiración o usar default
+        java.time.LocalDateTime expiration = java.time.LocalDateTime.now().plusHours(12);
+        if (expirationMatcher.find()) {
+            try {
+                String expirationStr = expirationMatcher.group(1);
+                expiration = java.time.LocalDateTime.parse(expirationStr, 
+                    java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
+                log.info("⏰ Token expira: {}", expiration);
+            } catch (Exception e) {
+                log.warn("⚠️ No se pudo parsear fecha de expiración, usando default 12h");
+            }
+        }
+        
         log.info("🔑 Token obtenido exitosamente");
         log.info("✍️ Firma obtenida exitosamente");
         
-        AfipCredentials credentials = new AfipCredentials(token, sign);
+        AfipCredentials credentials = new AfipCredentials(token, sign, expiration);
         CredentialsManager.saveCredentials(service, credentials);
         
         return credentials;

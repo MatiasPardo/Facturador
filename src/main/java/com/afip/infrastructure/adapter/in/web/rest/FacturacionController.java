@@ -23,8 +23,6 @@ public class FacturacionController {
     
     @PostMapping("/generar")
     public CAEResponse generar(@RequestBody FacturaRequest request) {
-
-        
         TipoComprobante tipo = convertirTipoNumerico(request.getTipoComprobante());
         
         // Determinar servicio basado en tipo de comprobante
@@ -36,10 +34,20 @@ public class FacturacionController {
         }
         
         CAE cae;
-        if (request.getCuitCliente() == null || request.getCuitCliente() == 0) {
-            cae = generarFactura.ejecutarConsumidorFinal(servicio, tipo, request.getPuntoVenta(), request.getImporteTotal());
+        if (request.getNumeroComprobante() != null) {
+            // Usar número de comprobante proporcionado
+            if (request.getCuitCliente() == null || request.getCuitCliente() == 0) {
+                cae = generarFactura.ejecutarConsumidorFinalConNumero(servicio, tipo, request.getPuntoVenta(), request.getNumeroComprobante(), request.getImporteTotal());
+            } else {
+                cae = generarFactura.ejecutarClienteConNumero(servicio, tipo, request.getPuntoVenta(), request.getNumeroComprobante(), request.getImporteTotal(), request.getCuitCliente());
+            }
         } else {
-            cae = generarFactura.ejecutarCliente(servicio, tipo, request.getPuntoVenta(), request.getImporteTotal(), request.getCuitCliente());
+            // Calcular número automáticamente (comportamiento anterior)
+            if (request.getCuitCliente() == null || request.getCuitCliente() == 0) {
+                cae = generarFactura.ejecutarConsumidorFinal(servicio, tipo, request.getPuntoVenta(), request.getImporteTotal());
+            } else {
+                cae = generarFactura.ejecutarCliente(servicio, tipo, request.getPuntoVenta(), request.getImporteTotal(), request.getCuitCliente());
+            }
         }
         
         return convertirCAE(cae);
