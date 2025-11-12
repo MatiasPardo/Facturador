@@ -35,6 +35,11 @@ public class CredentialsManager {
             props.setProperty(service + ".sign", credentials.getSign());
             props.setProperty(service + ".timestamp", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
             
+            // Guardar fecha de expiración si está disponible
+            if (credentials.getExpiration() != null) {
+                props.setProperty(service + ".expiration", credentials.getExpiration().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+            }
+            
             try (FileOutputStream fos = new FileOutputStream(CREDENTIALS_FILE)) {
                 props.store(fos, "AFIP Credentials - Updated at " + LocalDateTime.now());
             }
@@ -53,14 +58,29 @@ public class CredentialsManager {
             String token = props.getProperty(service + ".token");
             String sign = props.getProperty(service + ".sign");
             String timestamp = props.getProperty(service + ".timestamp");
+            String expirationStr = props.getProperty(service + ".expiration");
             
             if (token == null || sign == null) {
                 log.info("📄 No hay credenciales para servicio: {}", service);
                 return null;
             }
             
-            log.info("📂 Credenciales cargadas para {} (guardadas: {})", service, timestamp);
-            return new AfipCredentials(token, sign);
+            // Verificar expiración
+            LocalDateTime expiration = null;
+            if (expirationStr != null) {
+                try {
+                    expiration = LocalDateTime.parse(expirationStr, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                    if (expiration.isBefore(LocalDateTime.now().plusMinutes(5))) {
+                        log.warn("⏰ Token expirado o próximo a expirar para servicio: {}", service);
+                        return null;
+                    }
+                } catch (Exception e) {
+                    log.warn("⚠️ No se pudo parsear fecha de expiración para {}", service);
+                }
+            }
+            
+            log.info("📂 Credenciales válidas cargadas para {} (expira: {})", service, expiration);
+            return new AfipCredentials(token, sign, expiration);
             
         } catch (IOException e) {
             log.error("❌ Error cargando credenciales", e);
@@ -69,7 +89,8 @@ public class CredentialsManager {
     }
     
     public static boolean hasValidCredentials(String service) {
-        return loadCredentials(service) != null;
+        AfipCredentials credentials = loadCredentials(service);
+        return credentials != null && !credentials.isExpired();
     }
     
     public static void clearCredentials(String service) {
