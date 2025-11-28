@@ -24,8 +24,8 @@ public class AfipConfig {
     
     // === CONFIGURACIÓN PARAMETRIZABLE ===
     
-    // Certificado
-    public static final String CERT_PATH = getProperty("afip.cert.path", "src/main/resources/certificates/certificado.p12");
+    // Certificado - Detección automática de SO
+    public static final String CERT_PATH = getCertificatePath();
     public static final String CERT_PASSWORD = getProperty("afip.cert.password", "clave123");
     public static final String CERT_ALIAS = getProperty("afip.cert.alias", "fulloptica");
     
@@ -57,6 +57,22 @@ public class AfipConfig {
     
     private static String getProperty(String key, String defaultValue) {
         return props.getProperty(key, defaultValue);
+    }
+    
+    private static String getCertificatePath() {
+        String os = System.getProperty("os.name").toLowerCase();
+        
+        if (os.contains("win")) {
+            // Windows - ambiente de desarrollo - usar desde resources
+            String certPath = "certificates/certificado.p12";
+            System.out.println("💻 Windows detectado - usando certificado desde resources: " + certPath);
+            return certPath;
+        } else {
+            // Linux - ambiente de producción - usar propiedad configurada
+            String configuredPath = props.getProperty("afip.cert.path", "/opt/AFIP/certificado.p12");
+            System.out.println("🐧 Linux detectado - usando certificado de producción: " + configuredPath);
+            return configuredPath;
+        }
     }
     
     // Métodos para configuración dinámica

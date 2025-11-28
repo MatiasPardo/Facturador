@@ -10,6 +10,7 @@ public class Comprobante {
     private LocalDate fechaComprobante;
     private long cuitCliente;
     private int tipoDocumento;
+    private String denominacionReceptor;
     private BigDecimal importeTotal;
     private BigDecimal importeNeto;
     private BigDecimal importeIva;
@@ -65,6 +66,14 @@ public class Comprobante {
     
     public void setTipoDocumento(int tipoDocumento) {
         this.tipoDocumento = tipoDocumento;
+    }
+    
+    public String getDenominacionReceptor() {
+        return denominacionReceptor;
+    }
+    
+    public void setDenominacionReceptor(String denominacionReceptor) {
+        this.denominacionReceptor = denominacionReceptor;
     }
     
     public BigDecimal getImporteTotal() {

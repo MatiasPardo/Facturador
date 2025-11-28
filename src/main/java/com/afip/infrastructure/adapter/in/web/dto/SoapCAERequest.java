@@ -12,6 +12,7 @@ public class SoapCAERequest {
     private String fechaComprobante;
     private long cuitCliente;
     private int tipoDocumento;
+    private String denominacionReceptor;
     private BigDecimal importeNeto;
     private BigDecimal importeIva;
     private BigDecimal importeTotal;
@@ -41,6 +42,9 @@ public class SoapCAERequest {
     
     public int getTipoDocumento() { return tipoDocumento; }
     public void setTipoDocumento(int tipoDocumento) { this.tipoDocumento = tipoDocumento; }
+    
+    public String getDenominacionReceptor() { return denominacionReceptor; }
+    public void setDenominacionReceptor(String denominacionReceptor) { this.denominacionReceptor = denominacionReceptor; }
     
     public BigDecimal getImporteNeto() { return importeNeto; }
     public void setImporteNeto(BigDecimal importeNeto) { this.importeNeto = importeNeto; }

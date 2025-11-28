@@ -79,6 +79,7 @@ public class AfipRepositoryImpl implements AfipRepository {
         comprobante.setFechaComprobante(factura.getFecha());
         comprobante.setCuitCliente(factura.getCliente().getCuit());
         comprobante.setTipoDocumento(factura.getCliente().getTipoDocumento().getCodigo());
+        comprobante.setDenominacionReceptor(factura.getDenominacionReceptor());
         comprobante.setImporteNeto(factura.getImporteNeto());
         comprobante.setImporteIva(factura.getImporteIva());
         comprobante.setImporteTotal(factura.getImporteTotal());

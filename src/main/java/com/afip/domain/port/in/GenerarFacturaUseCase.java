@@ -10,4 +10,10 @@ public interface GenerarFacturaUseCase {
     CAE ejecutarCliente(String servicio, TipoComprobante tipo, int puntoVenta, BigDecimal importe, long cuitCliente);
     CAE ejecutarConsumidorFinalConNumero(String servicio, TipoComprobante tipo, int puntoVenta, long numeroComprobante, BigDecimal importe);
     CAE ejecutarClienteConNumero(String servicio, TipoComprobante tipo, int puntoVenta, long numeroComprobante, BigDecimal importe, long cuitCliente);
+    
+    // Métodos con denominación del receptor
+    CAE ejecutarConsumidorFinal(String servicio, TipoComprobante tipo, int puntoVenta, BigDecimal importe, String denominacionReceptor);
+    CAE ejecutarCliente(String servicio, TipoComprobante tipo, int puntoVenta, BigDecimal importe, long cuitCliente, String denominacionReceptor);
+    CAE ejecutarConsumidorFinalConNumero(String servicio, TipoComprobante tipo, int puntoVenta, long numeroComprobante, BigDecimal importe, String denominacionReceptor);
+    CAE ejecutarClienteConNumero(String servicio, TipoComprobante tipo, int puntoVenta, long numeroComprobante, BigDecimal importe, long cuitCliente, String denominacionReceptor);
 }

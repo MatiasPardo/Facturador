@@ -9,6 +9,7 @@ public class FacturaRequest {
     private Long numeroComprobante;
     private String numeroDocumento;
     private int tipoDocumento;
+    private String denominacionReceptor;
     private BigDecimal importeTotal;
     private BigDecimal importeNeto;
     private BigDecimal importeIVA;
@@ -30,6 +31,9 @@ public class FacturaRequest {
     
     public int getTipoDocumento() { return tipoDocumento; }
     public void setTipoDocumento(int tipoDocumento) { this.tipoDocumento = tipoDocumento; }
+    
+    public String getDenominacionReceptor() { return denominacionReceptor; }
+    public void setDenominacionReceptor(String denominacionReceptor) { this.denominacionReceptor = denominacionReceptor; }
     
     public BigDecimal getImporteTotal() { return importeTotal; }
     public void setImporteTotal(BigDecimal importeTotal) { this.importeTotal = importeTotal; }

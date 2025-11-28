@@ -32,6 +32,7 @@ public class AfipSoapService {
                               @WebParam(name = "fechaComprobante") String fechaComprobante,
                               @WebParam(name = "cuitCliente") long cuitCliente,
                               @WebParam(name = "tipoDocumento") int tipoDocumento,
+                              @WebParam(name = "denominacionReceptor") String denominacionReceptor,
                               @WebParam(name = "importeNeto") String importeNeto,
                               @WebParam(name = "importeIva") String importeIva,
                               @WebParam(name = "importeTotal") String importeTotal) {
@@ -45,7 +46,7 @@ public class AfipSoapService {
             // Crear factura electrónica
             FacturaElectronica factura = crearFacturaDesdeSOAP(
                 tipoComprobante, puntoVenta, numeroComprobante, fechaComprobante,
-                cuitCliente, tipoDocumento, importeNeto, importeIva, importeTotal
+                cuitCliente, tipoDocumento, denominacionReceptor, importeNeto, importeIva, importeTotal
             );
             
             // Determinar servicio basado en tipo de comprobante
@@ -80,7 +81,7 @@ public class AfipSoapService {
     
     private FacturaElectronica crearFacturaDesdeSOAP(int tipoComprobante, int puntoVenta, 
                                                     long numeroComprobante, String fechaComprobante,
-                                                    long cuitCliente, int tipoDocumento,
+                                                    long cuitCliente, int tipoDocumento, String denominacionReceptor,
                                                     String importeNeto, String importeIva, String importeTotal) {
         
         TipoComprobante tipo = convertirTipoComprobante(tipoComprobante);
@@ -88,7 +89,7 @@ public class AfipSoapService {
         Cliente cliente = crearCliente(cuitCliente, tipoDocumento);
         
         return new FacturaElectronica(
-            tipo, puntoVenta, numeroComprobante, fecha, cliente,
+            tipo, puntoVenta, numeroComprobante, fecha, cliente, denominacionReceptor,
             new java.math.BigDecimal(importeNeto),
             new java.math.BigDecimal(importeIva),
             new java.math.BigDecimal(importeTotal),

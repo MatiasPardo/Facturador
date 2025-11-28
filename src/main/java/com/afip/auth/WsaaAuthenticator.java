@@ -74,12 +74,24 @@ public class WsaaAuthenticator {
     }
     
     private KeyStore loadCertificate() throws Exception {
+        KeyStore keyStore = KeyStore.getInstance("PKCS12");
+        
+        // Intentar cargar desde classpath primero
+        InputStream certStream = getClass().getClassLoader().getResourceAsStream(certPath);
+        if (certStream != null) {
+            log.info("📁 Cargando certificado desde classpath: {}", certPath);
+            keyStore.load(certStream, certPassword.toCharArray());
+            certStream.close();
+            return keyStore;
+        }
+        
+        // Si no está en classpath, intentar como archivo del sistema
         File certFile = new File(certPath);
         if (!certFile.exists() || certFile.length() == 0) {
             throw new IllegalStateException("El archivo de certificado no existe o está vacío: " + certPath);
         }
         
-        KeyStore keyStore = KeyStore.getInstance("PKCS12");
+        log.info("📁 Cargando certificado desde sistema de archivos: {}", certPath);
         keyStore.load(new FileInputStream(certPath), certPassword.toCharArray());
         return keyStore;
     }

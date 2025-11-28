@@ -21,34 +21,12 @@ public class GenerarFacturaService implements GenerarFacturaUseCase {
     
     @Override
     public CAE ejecutarConsumidorFinal(String servicio, TipoComprobante tipo, int puntoVenta, BigDecimal importe) {
-        long proximoNumero = obtenerProximoNumero(puntoVenta, tipo.getCodigo());
-        
-        FacturaElectronica factura = new FacturaElectronica(
-            tipo, puntoVenta, proximoNumero, LocalDate.now(),
-            Cliente.consumidorFinal(),
-            calcularImporteNeto(tipo, importe),
-            calcularImporteIva(tipo, importe),
-            importe,
-            "Productos"
-        );
-        
-        return solicitarCAE.ejecutar(servicio, factura);
+        return ejecutarConsumidorFinal(servicio, tipo, puntoVenta, importe, null);
     }
     
     @Override
     public CAE ejecutarCliente(String servicio, TipoComprobante tipo, int puntoVenta, BigDecimal importe, long cuitCliente) {
-        long proximoNumero = obtenerProximoNumero(puntoVenta, tipo.getCodigo());
-        
-        FacturaElectronica factura = new FacturaElectronica(
-            tipo, puntoVenta, proximoNumero, LocalDate.now(),
-            Cliente.conCuit(cuitCliente),
-            calcularImporteNeto(tipo, importe),
-            calcularImporteIva(tipo, importe),
-            importe,
-            "Productos"
-        );
-        
-        return solicitarCAE.ejecutar(servicio, factura);
+        return ejecutarCliente(servicio, tipo, puntoVenta, importe, cuitCliente, null);
     }
     
     private long obtenerProximoNumero(int puntoVenta, int tipoComprobante) {
@@ -73,9 +51,21 @@ public class GenerarFacturaService implements GenerarFacturaUseCase {
     
     @Override
     public CAE ejecutarConsumidorFinalConNumero(String servicio, TipoComprobante tipo, int puntoVenta, long numeroComprobante, BigDecimal importe) {
+        return ejecutarConsumidorFinalConNumero(servicio, tipo, puntoVenta, numeroComprobante, importe, null);
+    }
+    
+    @Override
+    public CAE ejecutarClienteConNumero(String servicio, TipoComprobante tipo, int puntoVenta, long numeroComprobante, BigDecimal importe, long cuitCliente) {
+        return ejecutarClienteConNumero(servicio, tipo, puntoVenta, numeroComprobante, importe, cuitCliente, null);
+    }
+    
+    @Override
+    public CAE ejecutarConsumidorFinal(String servicio, TipoComprobante tipo, int puntoVenta, BigDecimal importe, String denominacionReceptor) {
+        long proximoNumero = obtenerProximoNumero(puntoVenta, tipo.getCodigo());
+        
         FacturaElectronica factura = new FacturaElectronica(
-            tipo, puntoVenta, numeroComprobante, LocalDate.now(),
-            Cliente.consumidorFinal(),
+            tipo, puntoVenta, proximoNumero, LocalDate.now(),
+            Cliente.consumidorFinal(), denominacionReceptor,
             calcularImporteNeto(tipo, importe),
             calcularImporteIva(tipo, importe),
             importe,
@@ -86,10 +76,40 @@ public class GenerarFacturaService implements GenerarFacturaUseCase {
     }
     
     @Override
-    public CAE ejecutarClienteConNumero(String servicio, TipoComprobante tipo, int puntoVenta, long numeroComprobante, BigDecimal importe, long cuitCliente) {
+    public CAE ejecutarCliente(String servicio, TipoComprobante tipo, int puntoVenta, BigDecimal importe, long cuitCliente, String denominacionReceptor) {
+        long proximoNumero = obtenerProximoNumero(puntoVenta, tipo.getCodigo());
+        
+        FacturaElectronica factura = new FacturaElectronica(
+            tipo, puntoVenta, proximoNumero, LocalDate.now(),
+            Cliente.conCuit(cuitCliente), denominacionReceptor,
+            calcularImporteNeto(tipo, importe),
+            calcularImporteIva(tipo, importe),
+            importe,
+            "Productos"
+        );
+        
+        return solicitarCAE.ejecutar(servicio, factura);
+    }
+    
+    @Override
+    public CAE ejecutarConsumidorFinalConNumero(String servicio, TipoComprobante tipo, int puntoVenta, long numeroComprobante, BigDecimal importe, String denominacionReceptor) {
         FacturaElectronica factura = new FacturaElectronica(
             tipo, puntoVenta, numeroComprobante, LocalDate.now(),
-            Cliente.conCuit(cuitCliente),
+            Cliente.consumidorFinal(), denominacionReceptor,
+            calcularImporteNeto(tipo, importe),
+            calcularImporteIva(tipo, importe),
+            importe,
+            "Productos"
+        );
+        
+        return solicitarCAE.ejecutar(servicio, factura);
+    }
+    
+    @Override
+    public CAE ejecutarClienteConNumero(String servicio, TipoComprobante tipo, int puntoVenta, long numeroComprobante, BigDecimal importe, long cuitCliente, String denominacionReceptor) {
+        FacturaElectronica factura = new FacturaElectronica(
+            tipo, puntoVenta, numeroComprobante, LocalDate.now(),
+            Cliente.conCuit(cuitCliente), denominacionReceptor,
             calcularImporteNeto(tipo, importe),
             calcularImporteIva(tipo, importe),
             importe,

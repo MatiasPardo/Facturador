@@ -34,19 +34,21 @@ public class FacturacionController {
         }
         
         CAE cae;
+        String denominacion = request.getDenominacionReceptor();
+        
         if (request.getNumeroComprobante() != null) {
             // Usar número de comprobante proporcionado
             if (request.getCuitCliente() == null || request.getCuitCliente() == 0) {
-                cae = generarFactura.ejecutarConsumidorFinalConNumero(servicio, tipo, request.getPuntoVenta(), request.getNumeroComprobante(), request.getImporteTotal());
+                cae = generarFactura.ejecutarConsumidorFinalConNumero(servicio, tipo, request.getPuntoVenta(), request.getNumeroComprobante(), request.getImporteTotal(), denominacion);
             } else {
-                cae = generarFactura.ejecutarClienteConNumero(servicio, tipo, request.getPuntoVenta(), request.getNumeroComprobante(), request.getImporteTotal(), request.getCuitCliente());
+                cae = generarFactura.ejecutarClienteConNumero(servicio, tipo, request.getPuntoVenta(), request.getNumeroComprobante(), request.getImporteTotal(), request.getCuitCliente(), denominacion);
             }
         } else {
-            // Calcular número automáticamente (comportamiento anterior)
+            // Calcular número automáticamente
             if (request.getCuitCliente() == null || request.getCuitCliente() == 0) {
-                cae = generarFactura.ejecutarConsumidorFinal(servicio, tipo, request.getPuntoVenta(), request.getImporteTotal());
+                cae = generarFactura.ejecutarConsumidorFinal(servicio, tipo, request.getPuntoVenta(), request.getImporteTotal(), denominacion);
             } else {
-                cae = generarFactura.ejecutarCliente(servicio, tipo, request.getPuntoVenta(), request.getImporteTotal(), request.getCuitCliente());
+                cae = generarFactura.ejecutarCliente(servicio, tipo, request.getPuntoVenta(), request.getImporteTotal(), request.getCuitCliente(), denominacion);
             }
         }
         

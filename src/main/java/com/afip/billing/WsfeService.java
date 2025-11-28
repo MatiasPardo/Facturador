@@ -178,12 +178,26 @@ public class WsfeService {
         feCAEDetRequest.appendChild(concepto);
         
         org.w3c.dom.Element docTipo = doc.createElement("wsfe:DocTipo");
-        docTipo.setTextContent(String.valueOf(comprobante.getTipoDocumento()));
-        feCAEDetRequest.appendChild(docTipo);
-        
         org.w3c.dom.Element docNro = doc.createElement("wsfe:DocNro");
-        docNro.setTextContent(String.valueOf(comprobante.getCuitCliente()));
+        
+        // Si no hay documento válido, usar consumidor final
+        if (comprobante.getCuitCliente() == 0) {
+            docTipo.setTextContent("99"); // Consumidor Final
+            docNro.setTextContent("0");
+        } else {
+            docTipo.setTextContent(String.valueOf(comprobante.getTipoDocumento()));
+            docNro.setTextContent(String.valueOf(comprobante.getCuitCliente()));
+        }
+        
+        feCAEDetRequest.appendChild(docTipo);
         feCAEDetRequest.appendChild(docNro);
+        
+        // Agregar denominación del receptor si está disponible
+        if (comprobante.getDenominacionReceptor() != null && !comprobante.getDenominacionReceptor().trim().isEmpty()) {
+            org.w3c.dom.Element denominacion = doc.createElement("wsfe:DocNombre");
+            denominacion.setTextContent(comprobante.getDenominacionReceptor());
+            feCAEDetRequest.appendChild(denominacion);
+        }
         
         org.w3c.dom.Element cbteDesde = doc.createElement("wsfe:CbteDesde");
         cbteDesde.setTextContent(String.valueOf(comprobante.getNumeroComprobante()));

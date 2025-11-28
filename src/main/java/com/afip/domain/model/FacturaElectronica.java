@@ -10,19 +10,21 @@ public class FacturaElectronica {
     private final long numeroComprobante;
     private final LocalDate fecha;
     private final Cliente cliente;
+    private final String denominacionReceptor;
     private final BigDecimal importeNeto;
     private final BigDecimal importeIva;
     private final BigDecimal importeTotal;
     private final String concepto;
     
     public FacturaElectronica(TipoComprobante tipo, int puntoVenta, long numeroComprobante, 
-                             LocalDate fecha, Cliente cliente, BigDecimal importeNeto, 
-                             BigDecimal importeIva, BigDecimal importeTotal, String concepto) {
+                             LocalDate fecha, Cliente cliente, String denominacionReceptor,
+                             BigDecimal importeNeto, BigDecimal importeIva, BigDecimal importeTotal, String concepto) {
         this.tipo = tipo;
         this.puntoVenta = puntoVenta;
         this.numeroComprobante = numeroComprobante;
         this.fecha = fecha;
         this.cliente = cliente;
+        this.denominacionReceptor = denominacionReceptor;
         this.importeNeto = importeNeto;
         this.importeIva = importeIva;
         this.importeTotal = importeTotal;
@@ -35,6 +37,7 @@ public class FacturaElectronica {
     public long getNumeroComprobante() { return numeroComprobante; }
     public LocalDate getFecha() { return fecha; }
     public Cliente getCliente() { return cliente; }
+    public String getDenominacionReceptor() { return denominacionReceptor; }
     public BigDecimal getImporteNeto() { return importeNeto; }
     public BigDecimal getImporteIva() { return importeIva; }
     public BigDecimal getImporteTotal() { return importeTotal; }

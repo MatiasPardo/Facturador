@@ -30,11 +30,16 @@ public class FacturacionService implements FacturacionUseCase {
     
     @Override
     public CAE generarFacturaConsumidorFinal(TipoComprobante tipo, int puntoVenta, BigDecimal importe) {
+        return generarFacturaConsumidorFinal(tipo, puntoVenta, importe, null);
+    }
+    
+    @Override
+    public CAE generarFacturaConsumidorFinal(TipoComprobante tipo, int puntoVenta, BigDecimal importe, String denominacionReceptor) {
         long proximoNumero = obtenerProximoNumero(puntoVenta, tipo.getCodigo());
         
         FacturaElectronica factura = new FacturaElectronica(
             tipo, puntoVenta, proximoNumero, LocalDate.now(),
-            Cliente.consumidorFinal(),
+            Cliente.consumidorFinal(), denominacionReceptor,
             calcularImporteNeto(tipo, importe),
             calcularImporteIva(tipo, importe),
             importe,
@@ -46,11 +51,16 @@ public class FacturacionService implements FacturacionUseCase {
     
     @Override
     public CAE generarFacturaCliente(TipoComprobante tipo, int puntoVenta, BigDecimal importe, long cuitCliente) {
+        return generarFacturaCliente(tipo, puntoVenta, importe, cuitCliente, null);
+    }
+    
+    @Override
+    public CAE generarFacturaCliente(TipoComprobante tipo, int puntoVenta, BigDecimal importe, long cuitCliente, String denominacionReceptor) {
         long proximoNumero = obtenerProximoNumero(puntoVenta, tipo.getCodigo());
         
         FacturaElectronica factura = new FacturaElectronica(
             tipo, puntoVenta, proximoNumero, LocalDate.now(),
-            Cliente.conCuit(cuitCliente),
+            Cliente.conCuit(cuitCliente), denominacionReceptor,
             calcularImporteNeto(tipo, importe),
             calcularImporteIva(tipo, importe),
             importe,

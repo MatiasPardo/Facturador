@@ -49,6 +49,14 @@ afip.wsmtxca.url=https://servicios1.afip.gov.ar/wsmtxca/service.asmx
 
 *Currently using WSFE for all due to certificate permissions
 
+### Voucher Numbering
+The system supports two numbering modes:
+
+1. **Automatic Numbering** (default): System queries AFIP for the last voucher number and increments by 1
+2. **External Numbering**: Provide `numeroComprobante` in the request body to use your own numbering system
+
+**Important**: When using external numbering, ensure sequential numbering as AFIP validates this strictly. Duplicate or out-of-sequence numbers will be rejected.
+
 ---
 
 ## 1. UI Console Interface
@@ -191,6 +199,23 @@ curl -X POST http://localhost:8080/api/facturacion/generar \
   }'
 ```
 
+#### 5b. Generate Invoice with Custom Voucher Number
+```bash
+curl -X POST http://localhost:8080/api/facturacion/generar \
+  -H "Content-Type: application/json" \
+  -d '{
+    "puntoVenta": 1,
+    "tipoComprobante": 11,
+    "numeroComprobante": 25,
+    "numeroDocumento": "20123456789",
+    "tipoDocumento": 80,
+    "importeTotal": 1000.00,
+    "importeNeto": 1000.00,
+    "importeIVA": 0.00,
+    "fechaComprobante": "2024-01-15"
+  }'
+```
+
 #### 6. Generate Invoice (Consumer Final - Factura B)
 ```bash
 curl -X POST http://localhost:8080/api/facturacion/generar \
@@ -283,6 +308,7 @@ http://localhost:8080/ws/afip?wsdl
       <afip:generarFacturaRequest>
          <afip:puntoVenta>1</afip:puntoVenta>
          <afip:tipoComprobante>11</afip:tipoComprobante>
+         <afip:numeroComprobante>25</afip:numeroComprobante>
          <afip:numeroDocumento>20123456789</afip:numeroDocumento>
          <afip:tipoDocumento>80</afip:tipoDocumento>
          <afip:importeTotal>1000.00</afip:importeTotal>
